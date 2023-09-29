@@ -23,12 +23,35 @@ def clear_session():
 @app.route('/articles')
 def index_articles():
 
-    pass
+    with app.test_client() as client:
+        # Ensure that the session is clear before starting the test
+        client.get('/clear')
+        
+        # Make a GET request to view an article
+        client.get('/articles/1')
+        
+        # Ensure that the page_views session variable is 1 after viewing the first article
+        with client.session_transaction() as sess:
+            assert sess['page_views'] == 1
 
 @app.route('/articles/<int:id>')
 def show_article(id):
+    if 'page_views' not in session:
+        session['page_views'] = 0
+    else:
+        session['page_views'] += 1
 
-    pass
+    if session['page_views'] <= 3:
+        # Render JSON response with article data
+        article = Article.query.get(id)
+        if article:
+            return jsonify(article.to_dict()), 200
+        else:
+            return jsonify({'error': 'Article not found'}), 404
+    else:
+        # Render JSON response with error message
+        return jsonify({'message': 'Maximum pageview limit reached'}), 401
+
 
 if __name__ == '__main__':
     app.run(port=5555)
