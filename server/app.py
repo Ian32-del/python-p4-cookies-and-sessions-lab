@@ -34,6 +34,14 @@ def index_articles():
         with client.session_transaction() as sess:
             assert sess['page_views'] == 1
 
+        # for _ in range(2, 5):
+        #     client.get(f'/articles/{_}')
+
+        # response = client.get('/articles/5')
+        # assert response.status_code == 401
+
+        # assert 'Maximum pageview limit reached ' in response.json['message']
+
 @app.route('/articles/<int:id>')
 def show_article(id):
     if 'page_views' not in session:
